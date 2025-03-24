@@ -1,12 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Time;
+import java.awt.event.*;
+import java.sql.*;
 import java.time.Duration;
 
 public class InterfaceForfait {
@@ -14,20 +9,18 @@ public class InterfaceForfait {
     private JTextField txtCode;
 
     public InterfaceForfait() {
-        // -- Appliquer le LookAndFeel Nimbus pour un rendu plus moderne
-        try {
-            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        // Optionnel : désactiver le LookAndFeel Nimbus pour gérer le style personnalisé
+        // try {
+        //     UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+        // } catch (Exception ex) {
+        //     ex.printStackTrace();
+        // }
 
-        // Initialisation de la fenêtre
         frame = new JFrame("ArrasGames - Gestion des Forfaits");
-        frame.setSize(400, 250);
+        frame.setSize(400, 300);
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
 
-        // Fermeture avec confirmation
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 int option = JOptionPane.showConfirmDialog(
@@ -43,58 +36,80 @@ public class InterfaceForfait {
         });
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-        // --- PANEL PRINCIPAL ---
-        JPanel pnlForfait = new JPanel(new GridBagLayout());
-        pnlForfait.setBackground(Color.WHITE);
+        // --- Panel principal avec dégradé en arrière-plan ---
+        JPanel pnlBackground = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                int w = getWidth();
+                int h = getHeight();
+                // Dégradé vertical du haut vers le bas
+                Color startColor = new Color(25, 27, 44);
+                Color endColor = new Color(32, 20, 51);
+                GradientPaint gp = new GradientPaint(0, 0, startColor, 0, h, endColor);
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, w, h);
+                g2d.dispose();
+            }
+        };
+        pnlBackground.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 20, 10, 20);
 
-        // Titre
+        // Palette de couleurs
+        Color textColor = Color.WHITE;
+        Color accentColor = new Color(255, 64, 129); // Rose flashy
+        Color fieldBg = new Color(60, 63, 65);       // Gris foncé
+
+        // --- Titre ---
         JLabel lblTitle = new JLabel("Gestion des Forfaits", SwingConstants.CENTER);
         lblTitle.setFont(new Font("SansSerif", Font.BOLD, 20));
-        lblTitle.setForeground(new Color(60, 63, 65));
+        lblTitle.setForeground(textColor);
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
-        pnlForfait.add(lblTitle, gbc);
+        pnlBackground.add(lblTitle, gbc);
 
-        // Champ Code
+        // --- Champ Code ---
         JLabel lblCode = new JLabel("Entrez le code :");
         lblCode.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        lblCode.setForeground(new Color(60, 63, 65));
-
-        txtCode = new JTextField(15);
-        txtCode.setToolTipText("Saisissez le code du forfait");
-        txtCode.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(new Color(150, 150, 150), 1),
-                        BorderFactory.createEmptyBorder(5, 5, 5, 5)
-                )
-        );
-
+        lblCode.setForeground(textColor);
         gbc.gridy = 1;
         gbc.gridwidth = 1;
         gbc.gridx = 0;
-        pnlForfait.add(lblCode, gbc);
-        gbc.gridx = 1;
-        pnlForfait.add(txtCode, gbc);
+        pnlBackground.add(lblCode, gbc);
 
-        // Bouton Vérifier
+        txtCode = new JTextField(15);
+        txtCode.setToolTipText("Saisissez le code du forfait");
+        txtCode.setForeground(textColor);
+        txtCode.setBackground(fieldBg);
+        txtCode.setCaretColor(textColor);
+        txtCode.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(accentColor, 1),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        gbc.gridx = 1;
+        pnlBackground.add(txtCode, gbc);
+
+        // --- Bouton Vérifier ---
         JButton btnSave = new JButton("Vérifier");
         btnSave.setFont(new Font("SansSerif", Font.BOLD, 14));
         btnSave.setForeground(Color.WHITE);
-        btnSave.setBackground(new Color(75, 110, 175));
+        btnSave.setBackground(accentColor);
         btnSave.setFocusPainted(false);
         btnSave.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnSave.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        btnSave.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btnSave.setBackground(new Color(55, 90, 155));
+        btnSave.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent evt) {
+                btnSave.setBackground(accentColor.darker());
             }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btnSave.setBackground(new Color(75, 110, 175));
+            @Override
+            public void mouseExited(MouseEvent evt) {
+                btnSave.setBackground(accentColor);
             }
         });
 
@@ -104,10 +119,9 @@ public class InterfaceForfait {
         gbc.gridy = 2;
         gbc.gridwidth = 2;
         gbc.insets = new Insets(20, 20, 10, 20);
-        pnlForfait.add(btnSave, gbc);
+        pnlBackground.add(btnSave, gbc);
 
-        // Ajout du panel principal à la frame
-        frame.add(pnlForfait);
+        frame.add(pnlBackground);
         frame.setVisible(true);
     }
 
@@ -119,27 +133,39 @@ public class InterfaceForfait {
         }
 
         try (Connection conn = new Connexion().getCon()) {
-            // Requête SQL pour récupérer la durée en secondes
-            String query = "SELECT time FROM reservations WHERE code = ?";
+            // Requête SQL pour récupérer le temps et le statut d'utilisation du forfait
+            String query = "SELECT time, status FROM reservations WHERE code = ?";
             PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, code);
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                long tempsRestantSeconds = rs.getLong("time"); // Récupération du temps en secondes
+                // Vérification si le forfait a déjà été utilisé
+                String usedStatus = rs.getString("status");
+                if (usedStatus != null && (usedStatus.equalsIgnoreCase("used") || usedStatus.equalsIgnoreCase("expired"))) {
+                    JOptionPane.showMessageDialog(frame, "Ce forfait a déjà été utilisé ou a expirée.", "Erreur", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
+                long tempsRestantSeconds = rs.getLong("time");
                 if (tempsRestantSeconds > 0) {
-                    // Convertir les secondes en Duration
+                    // Conversion du temps restant en Duration
                     Duration tempsRestant = Duration.ofSeconds(tempsRestantSeconds);
-
-                    // Afficher le temps restant (en minutes et secondes)
                     long minutes = tempsRestant.toMinutes();
                     long secondes = tempsRestant.minusMinutes(minutes).getSeconds();
-                    JOptionPane.showMessageDialog(frame, "Temps restant : " + minutes + " minutes et " + secondes + " secondes.", "Information", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(frame,
+                            "Temps restant : " + minutes + " minutes et " + secondes + " secondes.",
+                            "Information", JOptionPane.INFORMATION_MESSAGE);
 
-                    // Passer à l'interface suivante (par exemple un décompte)
+                    // Mettre à jour la base de données pour marquer le forfait comme utilisé
+                    String updateQuery = "UPDATE reservations SET status = 'used' WHERE code = ?";
+                    PreparedStatement updateStmt = conn.prepareStatement(updateQuery);
+                    updateStmt.setString(1, code);
+                    updateStmt.executeUpdate();
+
+                    // Passage à l'interface suivante (exemple avec InterfaceTemps, à implémenter)
                     frame.dispose();
-                    new InterfaceTemps(tempsRestant); // Interface suivante à implémenter
+                    new InterfaceTemps(tempsRestant);
                 } else {
                     JOptionPane.showMessageDialog(frame, "Temps restant invalide.", "Erreur", JOptionPane.ERROR_MESSAGE);
                 }
@@ -150,6 +176,5 @@ public class InterfaceForfait {
             JOptionPane.showMessageDialog(frame, "Erreur lors de la récupération du forfait.", "Erreur", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
-
-
-    }}
+    }
+}
